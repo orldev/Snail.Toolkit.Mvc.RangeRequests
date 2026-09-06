@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Snail.Toolkit.Mvc.RangeRequests", "src\Snail.Toolkit.Mvc.RangeRequests.csproj", "{758F5D57-59F2-41B5-98FD-3BB8172C1CA3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Snail.Toolkit.Mvc.RangeRequests.Tests", "tests\Snail.Toolkit.Mvc.RangeRequests.Tests.csproj", "{73F18CEC-1D36-44E5-B754-837011D0ADB6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{758F5D57-59F2-41B5-98FD-3BB8172C1CA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{758F5D57-59F2-41B5-98FD-3BB8172C1CA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{758F5D57-59F2-41B5-98FD-3BB8172C1CA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{758F5D57-59F2-41B5-98FD-3BB8172C1CA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73F18CEC-1D36-44E5-B754-837011D0ADB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73F18CEC-1D36-44E5-B754-837011D0ADB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73F18CEC-1D36-44E5-B754-837011D0ADB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73F18CEC-1D36-44E5-B754-837011D0ADB6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
