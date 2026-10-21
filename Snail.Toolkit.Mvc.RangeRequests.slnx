@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="benchmarks/Snail.Toolkit.Mvc.RangeRequests.Benchmarks.csproj" />
+  <Project Path="src/Snail.Toolkit.Mvc.RangeRequests.csproj" />
+  <Project Path="tests/Snail.Toolkit.Mvc.RangeRequests.NativeProbe/Snail.Toolkit.Mvc.RangeRequests.NativeProbe.csproj" />
+  <Project Path="tests/Snail.Toolkit.Mvc.RangeRequests.Tests.csproj" />
+</Solution>

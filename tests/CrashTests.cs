@@ -1,6 +1,4 @@
 using System.Net;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace Snail.Toolkit.Mvc.RangeRequests.Tests;
@@ -174,7 +172,7 @@ public class CrashTests
         await leaving.CancelAsync();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => abandoned);
 
-        Assert.True(await LoggedAsync(logs, "The client left"), "the disconnect was never recognised");
+        Assert.True(await IsLoggedAsync(logs, "The client left"), "the disconnect was never recognised");
         Assert.DoesNotContain(logs.Entries, entry => entry.Message.Contains("Writing the body failed", StringComparison.Ordinal));
         Assert.DoesNotContain(logs.Entries, entry => entry.Message.Contains("Writing the body failed", StringComparison.Ordinal));
     }
@@ -238,7 +236,7 @@ public class CrashTests
         Assert.NotNull(parsed.Ranges);
     }
 
-    private static async Task<bool> LoggedAsync(RecordingLogs logs, string fragment)
+    private static async Task<bool> IsLoggedAsync(RecordingLogs logs, string fragment)
     {
         for (int attempt = 0; attempt < 500; attempt++)
         {

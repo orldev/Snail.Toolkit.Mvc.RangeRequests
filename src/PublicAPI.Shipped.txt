@@ -1,0 +1,96 @@
+#nullable enable
+Snail.Toolkit.Mvc.RangeRequests.ByteRange
+Snail.Toolkit.Mvc.RangeRequests.ByteRange.ByteRange() -> void
+Snail.Toolkit.Mvc.RangeRequests.ByteRange.ByteRange(long From, long To) -> void
+Snail.Toolkit.Mvc.RangeRequests.ByteRange.Deconstruct(out long From, out long To) -> void
+Snail.Toolkit.Mvc.RangeRequests.ByteRange.Equals(Snail.Toolkit.Mvc.RangeRequests.ByteRange other) -> bool
+Snail.Toolkit.Mvc.RangeRequests.ByteRange.From.get -> long
+Snail.Toolkit.Mvc.RangeRequests.ByteRange.From.init -> void
+Snail.Toolkit.Mvc.RangeRequests.ByteRange.Length.get -> long
+Snail.Toolkit.Mvc.RangeRequests.ByteRange.To.get -> long
+Snail.Toolkit.Mvc.RangeRequests.ByteRange.To.init -> void
+Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet
+Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet.ByteRangeSet() -> void
+Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet.ByteRangeSet(Snail.Toolkit.Mvc.RangeRequests.RangeSatisfaction Satisfaction, System.Collections.Generic.IReadOnlyList<Snail.Toolkit.Mvc.RangeRequests.ByteRange>! Ranges) -> void
+Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet.Deconstruct(out Snail.Toolkit.Mvc.RangeRequests.RangeSatisfaction Satisfaction, out System.Collections.Generic.IReadOnlyList<Snail.Toolkit.Mvc.RangeRequests.ByteRange>! Ranges) -> void
+Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet.Equals(Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet other) -> bool
+Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet.Ranges.get -> System.Collections.Generic.IReadOnlyList<Snail.Toolkit.Mvc.RangeRequests.ByteRange>!
+Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet.Ranges.init -> void
+Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet.Satisfaction.get -> Snail.Toolkit.Mvc.RangeRequests.RangeSatisfaction
+Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet.Satisfaction.init -> void
+Snail.Toolkit.Mvc.RangeRequests.ByteRanges
+Snail.Toolkit.Mvc.RangeRequests.Extensions.ControllerBaseExtensions
+Snail.Toolkit.Mvc.RangeRequests.Extensions.ControllerBaseExtensions.extension(Microsoft.AspNetCore.Mvc.ControllerBase!)
+Snail.Toolkit.Mvc.RangeRequests.Extensions.ControllerBaseExtensions.extension(Microsoft.AspNetCore.Mvc.ControllerBase!).RangeFile(Snail.Toolkit.Mvc.RangeRequests.RangeContent! content) -> Snail.Toolkit.Mvc.RangeRequests.RangeFileResult!
+Snail.Toolkit.Mvc.RangeRequests.Extensions.ResultExtensions
+Snail.Toolkit.Mvc.RangeRequests.Extensions.ResultExtensions.extension(Microsoft.AspNetCore.Http.IResultExtensions!)
+Snail.Toolkit.Mvc.RangeRequests.Extensions.ResultExtensions.extension(Microsoft.AspNetCore.Http.IResultExtensions!).RangeFile(Snail.Toolkit.Mvc.RangeRequests.RangeContent! content) -> Snail.Toolkit.Mvc.RangeRequests.RangeFileHttpResult!
+Snail.Toolkit.Mvc.RangeRequests.RangeContent
+Snail.Toolkit.Mvc.RangeRequests.RangeContent.<Clone>$() -> Snail.Toolkit.Mvc.RangeRequests.RangeContent!
+Snail.Toolkit.Mvc.RangeRequests.RangeContent.ContentType.get -> string!
+Snail.Toolkit.Mvc.RangeRequests.RangeContent.ContentType.init -> void
+Snail.Toolkit.Mvc.RangeRequests.RangeContent.ETag.get -> string?
+Snail.Toolkit.Mvc.RangeRequests.RangeContent.ETag.init -> void
+Snail.Toolkit.Mvc.RangeRequests.RangeContent.Equals(Snail.Toolkit.Mvc.RangeRequests.RangeContent? other) -> bool
+Snail.Toolkit.Mvc.RangeRequests.RangeContent.FileName.get -> string?
+Snail.Toolkit.Mvc.RangeRequests.RangeContent.FileName.init -> void
+Snail.Toolkit.Mvc.RangeRequests.RangeContent.LastModified.get -> System.DateTimeOffset
+Snail.Toolkit.Mvc.RangeRequests.RangeContent.LastModified.init -> void
+Snail.Toolkit.Mvc.RangeRequests.RangeContent.Length.get -> long
+Snail.Toolkit.Mvc.RangeRequests.RangeContent.Length.init -> void
+Snail.Toolkit.Mvc.RangeRequests.RangeContent.RangeContent() -> void
+Snail.Toolkit.Mvc.RangeRequests.RangeContent.Rules.get -> Snail.Toolkit.Mvc.RangeRequests.RangeRules!
+Snail.Toolkit.Mvc.RangeRequests.RangeContent.Rules.init -> void
+Snail.Toolkit.Mvc.RangeRequests.RangeContent.Write.get -> Snail.Toolkit.Mvc.RangeRequests.WriteRange!
+Snail.Toolkit.Mvc.RangeRequests.RangeContent.Write.init -> void
+Snail.Toolkit.Mvc.RangeRequests.RangeFileHttpResult
+Snail.Toolkit.Mvc.RangeRequests.RangeFileHttpResult.Content.get -> Snail.Toolkit.Mvc.RangeRequests.RangeContent!
+Snail.Toolkit.Mvc.RangeRequests.RangeFileHttpResult.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext! httpContext) -> System.Threading.Tasks.Task!
+Snail.Toolkit.Mvc.RangeRequests.RangeFileHttpResult.RangeFileHttpResult(Snail.Toolkit.Mvc.RangeRequests.RangeContent! content) -> void
+Snail.Toolkit.Mvc.RangeRequests.RangeFileResult
+Snail.Toolkit.Mvc.RangeRequests.RangeFileResult.Content.get -> Snail.Toolkit.Mvc.RangeRequests.RangeContent!
+Snail.Toolkit.Mvc.RangeRequests.RangeFileResult.RangeFileResult(Snail.Toolkit.Mvc.RangeRequests.RangeContent! content) -> void
+Snail.Toolkit.Mvc.RangeRequests.RangeRules
+Snail.Toolkit.Mvc.RangeRequests.RangeRules.<Clone>$() -> Snail.Toolkit.Mvc.RangeRequests.RangeRules!
+Snail.Toolkit.Mvc.RangeRequests.RangeRules.Equals(Snail.Toolkit.Mvc.RangeRequests.RangeRules? other) -> bool
+Snail.Toolkit.Mvc.RangeRequests.RangeRules.MaxFileLength.get -> long?
+Snail.Toolkit.Mvc.RangeRequests.RangeRules.MaxFileLength.init -> void
+Snail.Toolkit.Mvc.RangeRequests.RangeRules.MaxRangeLength.get -> long?
+Snail.Toolkit.Mvc.RangeRequests.RangeRules.MaxRangeLength.init -> void
+Snail.Toolkit.Mvc.RangeRequests.RangeRules.MaxRanges.get -> int
+Snail.Toolkit.Mvc.RangeRequests.RangeRules.MaxRanges.init -> void
+Snail.Toolkit.Mvc.RangeRequests.RangeRules.RangeRules() -> void
+Snail.Toolkit.Mvc.RangeRequests.RangeSatisfaction
+Snail.Toolkit.Mvc.RangeRequests.RangeSatisfaction.Ignored = 0 -> Snail.Toolkit.Mvc.RangeRequests.RangeSatisfaction
+Snail.Toolkit.Mvc.RangeRequests.RangeSatisfaction.Satisfiable = 1 -> Snail.Toolkit.Mvc.RangeRequests.RangeSatisfaction
+Snail.Toolkit.Mvc.RangeRequests.RangeSatisfaction.Unsatisfiable = 2 -> Snail.Toolkit.Mvc.RangeRequests.RangeSatisfaction
+Snail.Toolkit.Mvc.RangeRequests.WriteRange
+override Snail.Toolkit.Mvc.RangeRequests.ByteRange.GetHashCode() -> int
+override Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet.GetHashCode() -> int
+override Snail.Toolkit.Mvc.RangeRequests.RangeContent.Equals(object? obj) -> bool
+override Snail.Toolkit.Mvc.RangeRequests.RangeContent.GetHashCode() -> int
+override Snail.Toolkit.Mvc.RangeRequests.RangeContent.ToString() -> string!
+override Snail.Toolkit.Mvc.RangeRequests.RangeFileResult.ExecuteResultAsync(Microsoft.AspNetCore.Mvc.ActionContext! context) -> System.Threading.Tasks.Task!
+override Snail.Toolkit.Mvc.RangeRequests.RangeRules.Equals(object? obj) -> bool
+override Snail.Toolkit.Mvc.RangeRequests.RangeRules.GetHashCode() -> int
+override Snail.Toolkit.Mvc.RangeRequests.RangeRules.ToString() -> string!
+static Snail.Toolkit.Mvc.RangeRequests.ByteRange.operator !=(Snail.Toolkit.Mvc.RangeRequests.ByteRange left, Snail.Toolkit.Mvc.RangeRequests.ByteRange right) -> bool
+static Snail.Toolkit.Mvc.RangeRequests.ByteRange.operator ==(Snail.Toolkit.Mvc.RangeRequests.ByteRange left, Snail.Toolkit.Mvc.RangeRequests.ByteRange right) -> bool
+static Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet.Ignored.get -> Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet
+static Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet.Unsatisfiable.get -> Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet
+static Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet.operator !=(Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet left, Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet right) -> bool
+static Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet.operator ==(Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet left, Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet right) -> bool
+static Snail.Toolkit.Mvc.RangeRequests.ByteRanges.Parse(string? header, long entityLength, int maxRanges) -> Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet
+static Snail.Toolkit.Mvc.RangeRequests.Extensions.ControllerBaseExtensions.RangeFile(this Microsoft.AspNetCore.Mvc.ControllerBase! controller, Snail.Toolkit.Mvc.RangeRequests.RangeContent! content) -> Snail.Toolkit.Mvc.RangeRequests.RangeFileResult!
+static Snail.Toolkit.Mvc.RangeRequests.Extensions.ResultExtensions.RangeFile(this Microsoft.AspNetCore.Http.IResultExtensions! results, Snail.Toolkit.Mvc.RangeRequests.RangeContent! content) -> Snail.Toolkit.Mvc.RangeRequests.RangeFileHttpResult!
+static Snail.Toolkit.Mvc.RangeRequests.RangeContent.operator !=(Snail.Toolkit.Mvc.RangeRequests.RangeContent? left, Snail.Toolkit.Mvc.RangeRequests.RangeContent? right) -> bool
+static Snail.Toolkit.Mvc.RangeRequests.RangeContent.operator ==(Snail.Toolkit.Mvc.RangeRequests.RangeContent? left, Snail.Toolkit.Mvc.RangeRequests.RangeContent? right) -> bool
+static Snail.Toolkit.Mvc.RangeRequests.RangeFileHttpResult.PopulateMetadata(System.Reflection.MethodInfo! method, Microsoft.AspNetCore.Builder.EndpointBuilder! builder) -> void
+static Snail.Toolkit.Mvc.RangeRequests.RangeRules.Default.get -> Snail.Toolkit.Mvc.RangeRequests.RangeRules!
+static Snail.Toolkit.Mvc.RangeRequests.RangeRules.operator !=(Snail.Toolkit.Mvc.RangeRequests.RangeRules? left, Snail.Toolkit.Mvc.RangeRequests.RangeRules? right) -> bool
+static Snail.Toolkit.Mvc.RangeRequests.RangeRules.operator ==(Snail.Toolkit.Mvc.RangeRequests.RangeRules? left, Snail.Toolkit.Mvc.RangeRequests.RangeRules? right) -> bool
+virtual Snail.Toolkit.Mvc.RangeRequests.WriteRange.Invoke(System.IO.Stream! body, long offset, long length, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+~override Snail.Toolkit.Mvc.RangeRequests.ByteRange.Equals(object obj) -> bool
+~override Snail.Toolkit.Mvc.RangeRequests.ByteRange.ToString() -> string
+~override Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet.Equals(object obj) -> bool
+~override Snail.Toolkit.Mvc.RangeRequests.ByteRangeSet.ToString() -> string
