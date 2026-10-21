@@ -82,13 +82,18 @@ Values are checked where they enter, because `required` guarantees only that a m
 | Rejected                                            | Because                                                                     |
 |-----------------------------------------------------|-----------------------------------------------------------------------------|
 | `Length` below zero                                 | reaches `Response.ContentLength` and your delegate as a count                |
-| `ContentType` that is not a media type              | it is written into the multipart **body**, past Kestrel's header validation  |
-| `ETag` that is not an entity tag, or is weak        | it is a validator clients compare byte for byte, or one they cannot resume against |
+| `ContentType` that is not a media type, or carries a control character | it is written into the multipart **body**, past Kestrel's header validation |
+| `ETag` that is not an entity tag, is weak, or carries a control character | it is a validator clients compare byte for byte, or one they cannot resume against |
 | `MaxRanges` below one                               | silently disables range serving                                              |
 | `MaxRangeLength` or `MaxFileLength` of zero or less | describes a range that ends before it starts, or refuses every entity        |
 
-`ContentType` and `ETag` are stored in the canonical form their header types parse them into, so a value
-carrying CRLF cannot be represented at all.
+`ContentType` and `ETag` are parsed into the canonical form their header types give them and then held to
+RFC 9110 §5.5: a value carrying CR, LF or any other control character is refused, inside a quoted parameter
+as well as outside it. Parsing alone is not enough — the framework's quoted-string reader looks only for the
+closing quote — and a multipart body is the one place Kestrel's header validation never reaches.
+
+`FileName` is not checked but encoded: a name with characters a header cannot carry reaches the client as
+`filename*=UTF-8''…` per RFC 5987, never as a header line.
 
 ### Limits
 

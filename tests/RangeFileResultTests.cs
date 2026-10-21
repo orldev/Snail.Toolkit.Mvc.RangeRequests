@@ -154,6 +154,37 @@ public class RangeFileResultTests
         Assert.Equal(StatusCodes.Status412PreconditionFailed, context.Response.StatusCode);
     }
 
+    /// <summary>
+    /// RFC 7232 §3.4: If-Unmodified-Since is ignored whenever the request carries If-Match, readable or not. An
+    /// unreadable If-Match treated as absent let a stale date answer 412 on its own.
+    /// </summary>
+    [Fact]
+    public async Task ExecuteResultAsync_IfUnmodifiedSinceBesideAnUnreadableIfMatch_IgnoresTheDate()
+    {
+        var context = Requesting();
+        context.Request.Headers.IfMatch = "not-an-entity-tag";
+        context.Request.Headers.IfUnmodifiedSince = LastModified.AddDays(-1).ToString("r");
+
+        await ServeAsync(context);
+
+        Assert.Equal(StatusCodes.Status200OK, context.Response.StatusCode);
+    }
+
+    /// <summary>
+    /// RFC 7232 §3.3: If-Modified-Since is ignored whenever the request carries If-None-Match, readable or not.
+    /// </summary>
+    [Fact]
+    public async Task ExecuteResultAsync_IfModifiedSinceBesideAnUnreadableIfNoneMatch_IgnoresTheDate()
+    {
+        var context = Requesting();
+        context.Request.Headers.IfNoneMatch = "not-an-entity-tag";
+        context.Request.Headers.IfModifiedSince = LastModified.AddDays(1).ToString("r");
+
+        await ServeAsync(context);
+
+        Assert.Equal(StatusCodes.Status200OK, context.Response.StatusCode);
+    }
+
     [Fact]
     public async Task ExecuteResultAsync_MatchingIfNoneMatch_Answers304()
     {

@@ -45,18 +45,29 @@ public sealed record RangeContent
     /// Media type of the entity itself, not of the multipart envelope.
     /// </summary>
     /// <remarks>
-    /// Parsed and stored in its canonical form rather than kept as given. A multipart response writes this
-    /// value into the response <em>body</em>, where Kestrel's header validation does not reach, so a media
-    /// type carrying CRLF — the shape an application gets when it stores the type an upload declared — would
-    /// forge part headers. Round-tripping it through <see cref="MediaTypeHeaderValue"/> makes that
-    /// unrepresentable rather than merely unlikely.
+    /// Parsed and stored in its canonical form rather than kept as given, then checked for the characters a
+    /// header field cannot carry. A multipart response writes this value into the response <em>body</em>, where
+    /// Kestrel's header validation does not reach, so a media type carrying CRLF — the shape an application
+    /// gets when it stores the type an upload declared — would forge part headers. Parsing alone does not refuse
+    /// it: <see cref="MediaTypeHeaderValue"/> reads a quoted parameter up to its closing quote and lets CR and
+    /// LF through (measured: <c>text/plain; charset="utf-8\r\nX-Injected: yes"</c> parses and round-trips
+    /// intact), so the canonical text is held to RFC 9110 §5.5 as well, which allows a field value no control
+    /// character.
     /// </remarks>
     public required string ContentType
     {
         get;
-        init => field = MediaTypeHeaderValue.TryParse(value, out var parsed)
-            ? parsed.ToString()
-            : throw new ArgumentException($"'{value}' is not a media type.", nameof(ContentType));
+        init
+        {
+            string canonical = MediaTypeHeaderValue.TryParse(value, out var parsed)
+                ? parsed.ToString()
+                : throw new ArgumentException($"'{value}' is not a media type.", nameof(ContentType));
+
+            if (!IsFieldText(canonical))
+                throw new ArgumentException($"'{value}' carries a character no header field can.", nameof(ContentType));
+
+            field = canonical;
+        }
     }
 
     /// <summary>
@@ -86,6 +97,8 @@ public sealed record RangeContent
     /// client a stale body out of its own cache. A store that versions its objects already knows better,
     /// so it is allowed to say so. Weak validators are refused: RFC 7232 §2.1 bars them from the strong
     /// comparison If-Range requires, so one would silently turn every resumed download into a fresh one.
+    /// A tag carrying CR or LF between its quotes parses too, and would answer every request for the entity
+    /// with Kestrel's refusal of the ETag header, so it is refused here, once, instead.
     /// </remarks>
     public string? ETag
     {
@@ -107,6 +120,9 @@ public sealed record RangeContent
             if (parsed.IsWeak)
                 throw new ArgumentException($"'{value}' is a weak validator, which no range request can resume against.", nameof(ETag));
 
+            if (!IsFieldText(parsed.ToString()))
+                throw new ArgumentException($"'{value}' carries a character no header field can.", nameof(ETag));
+
             _entityTag = parsed;
         }
     }
@@ -114,6 +130,11 @@ public sealed record RangeContent
     /// <summary>
     /// Name offered to the client, or <see langword="null"/> to send no Content-Disposition.
     /// </summary>
+    /// <remarks>
+    /// Taken as given: <see cref="ContentDispositionHeaderValue"/> quotes it, or encodes it as RFC 5987 asks
+    /// when it carries anything a token cannot, so a name with CRLF reaches the client percent-encoded rather
+    /// than as a header line.
+    /// </remarks>
     public string? FileName
     {
         get;
@@ -139,6 +160,17 @@ public sealed record RangeContent
     /// the entity it was copied from.
     /// </remarks>
     internal Validators Validators => _validators.Known ??= Validators.Of(this);
+
+    /// <summary>
+    /// Whether the text can be carried by a header field, of the response or of a multipart part.
+    /// </summary>
+    /// <remarks>
+    /// RFC 9110 §5.5 gives a field value visible characters, spaces and obs-text; CR and LF end a field, so a value
+    /// carrying them ends it early and starts a forged one. Every other control character is refused with them,
+    /// the tab included: neither a media type nor an entity tag has a use for one.
+    /// </remarks>
+    private static bool IsFieldText(string text)
+        => !text.AsSpan().ContainsAnyInRange('\0', '\u001f') && !text.AsSpan().Contains('\u007f');
 
     /// <summary>Where the validators are kept once worked out.</summary>
     /// <remarks>

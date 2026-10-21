@@ -1,16 +1,11 @@
 <Project Sdk="Snail.Sdk.Library">
 
     <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
-    </PropertyGroup>
-
-    <PropertyGroup>
         <PackageId>Snail.Toolkit.Mvc.RangeRequests</PackageId>
         <Title>Snail.Toolkit.Mvc.RangeRequests</Title>
         <Authors>Toolkit</Authors>
         <Description>HTTP Range Requests (RFC 7233) served from a delegate, as an ASP.NET Core MVC ActionResult or a Minimal API IResult.</Description>
         <PackageTags>range-requests;rfc7233;http;streaming;actionresult;minimal-api</PackageTags>
-        <RepositoryUrl>https://github.com/orldev/Snail.Toolkit.Mvc.RangeRequests</RepositoryUrl>
         <PackageProjectUrl>https://github.com/orldev/Snail.Toolkit.Mvc.RangeRequests</PackageProjectUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>

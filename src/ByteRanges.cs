@@ -18,10 +18,14 @@ public static class ByteRanges
     /// and parses with <c>int.Parse</c> answers <c>bytes=100</c> with an exception and
     /// <c>bytes=0-3000000000</c> with an overflow, turning a client's bad header into the server's 500.
     /// Overlapping and adjacent ranges are coalesced, which RFC 7233 §6.1 recommends: without it a client
-    /// can ask for the same bytes many times in one request.
+    /// can ask for the same bytes many times in one request. A cap below one is refused as
+    /// <see cref="RangeRules.MaxRanges"/> refuses it: taken as given, it made every header longer than allowed
+    /// and disabled range serving without a word.
     /// </remarks>
     public static ByteRangeSet Parse(string? header, long entityLength, int maxRanges)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxRanges, 1);
+
         if (entityLength <= 0 || header is null)
             return ByteRangeSet.Ignored;
 

@@ -183,11 +183,17 @@ public class ByteRangesTests
     }
 
     /// <summary>
+    /// The one place the library departs from the framework on purpose: a header naming more ranges than the cap
+    /// is ignored before it is read (RFC 7233 §6.1), so the oracle applies the same policy and judges the reading.
+    /// </summary>
+    private static bool IsLongerThanTheLibraryAllows(string header) => header.AsSpan().Count(',') >= 5;
+
+    /// <summary>
     /// What the header reads as through <see cref="RangeHeaderValue"/>, measured and coalesced as RFC 7233 says.
     /// </summary>
     private static string FrameworkReadingOf(string header)
     {
-        if (header.AsSpan().Count(',') >= 5 || !RangeHeaderValue.TryParse(header, out var requested) || !requested.Unit.Equals("bytes", StringComparison.OrdinalIgnoreCase))
+        if (IsLongerThanTheLibraryAllows(header) || !RangeHeaderValue.TryParse(header, out var requested) || !requested.Unit.Equals("bytes", StringComparison.OrdinalIgnoreCase))
             return $"{RangeSatisfaction.Ignored} ";
 
         List<ByteRange> satisfiable = [];

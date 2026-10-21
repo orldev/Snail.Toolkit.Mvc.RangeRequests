@@ -17,6 +17,9 @@ internal static class Preconditions
     /// a stale If-Match with 416 — "fix your offsets" — where the client needs 412, "your copy is gone".
     /// A header that does not parse is absent here, not false; read as <c>DateTime.MinValue</c>, an
     /// unparseable If-Unmodified-Since would answer 412 for as long as the client keeps sending it.
+    /// A date header is ignored whenever the tag header that outranks it is present at all, readable or not,
+    /// as RFC 7232 §3.3 and §3.4 require: the presence is what the client meant, and an unreadable tag that let
+    /// the date decide would answer 304 or 412 to a request the tag said nothing about.
     /// The headers are parsed as <c>GetTypedHeaders</c> parses them, each once: its properties parse on every
     /// read, and the list headers were read twice, once to count them and once to match them.
     /// </remarks>
@@ -29,7 +32,7 @@ internal static class Preconditions
         if (MatchOf(headers.IfMatch, validators, useStrongComparison: true) is { } ifMatch)
             return ifMatch ? null : StatusCodes.Status412PreconditionFailed;
 
-        if (DateOf(headers.IfUnmodifiedSince) is { } unmodifiedSince && lastModified > unmodifiedSince)
+        if (StringValues.IsNullOrEmpty(headers.IfMatch) && DateOf(headers.IfUnmodifiedSince) is { } unmodifiedSince && lastModified > unmodifiedSince)
             return StatusCodes.Status412PreconditionFailed;
 
         if (MatchOf(headers.IfNoneMatch, validators, useStrongComparison: false) is { } ifNoneMatch)
@@ -40,7 +43,7 @@ internal static class Preconditions
             return isReadOnly ? StatusCodes.Status304NotModified : StatusCodes.Status412PreconditionFailed;
         }
 
-        if (isReadOnly && DateOf(headers.IfModifiedSince) is { } modifiedSince && lastModified <= modifiedSince)
+        if (isReadOnly && StringValues.IsNullOrEmpty(headers.IfNoneMatch) && DateOf(headers.IfModifiedSince) is { } modifiedSince && lastModified <= modifiedSince)
             return StatusCodes.Status304NotModified;
 
         return null;
