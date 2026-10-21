@@ -1,4 +1,4 @@
-## Snail.Toolkit.Mvc.RangeRequests
+# Snail.Toolkit.Mvc.RangeRequests
 
 HTTP Range Requests (RFC 7233) served from a delegate, as an ASP.NET Core MVC `ActionResult` or a Minimal
 API `IResult`.
@@ -141,7 +141,6 @@ build-time description can see, so it could only answer `null`.
 ### Documentation
 - [Hypertext Transfer Protocol (HTTP/1.1): Range Requests](https://www.rfc-editor.org/rfc/rfc7233)
 - [Hypertext Transfer Protocol (HTTP/1.1): Conditional Requests](https://www.rfc-editor.org/rfc/rfc7232)
-- [CHANGELOG](CHANGELOG.md) — what changed and why
 
 ### Sourcecode
 - [The original source](https://github.com/tpeczek/Lib.Web.Mvc/blob/main/Lib.Web.Mvc)
