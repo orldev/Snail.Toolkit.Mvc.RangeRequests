@@ -1,4 +1,3 @@
-using System.Globalization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -33,12 +32,11 @@ internal static class RangeResponse
             return;
         }
 
-        var lastModified = ToWholeSecond(content.LastModified);
-        var tag = content.EntityTag ?? EntityTags.For(lastModified, content.Length);
+        var validators = content.Validators;
 
-        if (Preconditions.Evaluate(context.Request, tag, lastModified) is { } precondition)
+        if (Preconditions.Evaluate(context.Request, validators) is { } precondition)
         {
-            response.Headers.ETag = tag.ToString();
+            response.Headers.ETag = validators.TagText;
             response.StatusCode = precondition;
             Log.PreconditionAnswered(logger, precondition);
 
@@ -46,15 +44,15 @@ internal static class RangeResponse
         }
 
         var served = Clamp(
-            ByteRanges.Parse(RangeHeaderOf(context.Request, tag, lastModified), content.Length, content.Rules.MaxRanges),
+            ByteRanges.Parse(RangeHeaderOf(context.Request, validators), content.Length, content.Rules.MaxRanges),
             content.Rules.MaxRangeLength);
 
-        response.Headers.LastModified = lastModified.ToString("r", CultureInfo.InvariantCulture);
-        response.Headers.ETag = tag.ToString();
+        response.Headers.LastModified = validators.LastModifiedText;
+        response.Headers.ETag = validators.TagText;
         response.Headers.AcceptRanges = "bytes";
 
-        if (content.FileName is { Length: > 0 } fileName)
-            response.Headers.ContentDisposition = DispositionOf(fileName);
+        if (validators.Disposition is { } disposition)
+            response.Headers.ContentDisposition = disposition;
 
         if (served.Satisfaction is RangeSatisfaction.Unsatisfiable)
         {
@@ -75,7 +73,6 @@ internal static class RangeResponse
         ILogger logger)
     {
         var response = context.Response;
-        var cancellationToken = context.RequestAborted;
 
         if (ranges.Count == 0)
         {
@@ -83,8 +80,7 @@ internal static class RangeResponse
             response.ContentLength = content.Length;
             response.StatusCode = StatusCodes.Status200OK;
 
-            await SendAsync(context, logger,
-                () => content.Write(response.Body, 0, content.Length, cancellationToken));
+            await SendAsync(context, logger, content.Write, 0, content.Length);
 
             return;
         }
@@ -98,20 +94,18 @@ internal static class RangeResponse
             response.ContentLength = only.Length;
             response.StatusCode = StatusCodes.Status206PartialContent;
 
-            await SendAsync(context, logger,
-                () => content.Write(response.Body, only.From, only.Length, cancellationToken));
+            await SendAsync(context, logger, content.Write, only.From, only.Length);
 
             return;
         }
 
-        var multipart = new MultipartByteRanges(ranges, content.ContentType, content.Length);
+        using var multipart = new MultipartByteRanges(ranges, content.ContentType, content.Length);
 
         response.ContentType = multipart.ContentType;
         response.ContentLength = multipart.ContentLength;
         response.StatusCode = StatusCodes.Status206PartialContent;
 
-        await SendAsync(context, logger,
-            () => WriteMultipartAsync(context, multipart, ranges, content.Write, cancellationToken));
+        await SendAsync(context, logger, content.Write, 0, multipart.ContentLength, multipart);
     }
 
     /// <summary>
@@ -123,16 +117,30 @@ internal static class RangeResponse
     /// response is not what it claims". A client that left is told apart by the state of its own token
     /// rather than by the type it surfaced: Kestrel raises ConnectionAbortedException, but a writer
     /// wrapping a network stream raises IOException, and keying on the type logs a routine disconnect as
-    /// an error.
+    /// an error. The body is one stretch of the entity, or the multipart body when one is given; either
+    /// way the writer and the stretch are passed rather than a closure over them, which was allocated on
+    /// every request.
     /// </remarks>
-    private static async Task SendAsync(HttpContext context, ILogger logger, Func<Task> body)
+    private static async Task SendAsync(
+        HttpContext context,
+        ILogger logger,
+        WriteRange write,
+        long offset,
+        long length,
+        MultipartByteRanges? multipart = null)
     {
         if (HttpMethods.IsHead(context.Request.Method))
             return;
 
+        var body = context.Response.Body;
+        var cancellationToken = context.RequestAborted;
+
         try
         {
-            await body();
+            if (multipart is null)
+                await write(body, offset, length, cancellationToken);
+            else
+                await multipart.WriteAsync(body, write, cancellationToken);
         }
         catch (Exception) when (context.RequestAborted.IsCancellationRequested)
         {
@@ -147,37 +155,31 @@ internal static class RangeResponse
         }
     }
 
-    private static async Task WriteMultipartAsync(
-        HttpContext context,
-        MultipartByteRanges multipart,
-        IReadOnlyList<ByteRange> ranges,
-        WriteRange write,
-        CancellationToken cancellationToken)
-    {
-        for (int index = 0; index < ranges.Count; index++)
-        {
-            await multipart.WritePartHeaderAsync(context.Response, index, cancellationToken);
-            await write(context.Response.Body, ranges[index].From, ranges[index].Length, cancellationToken);
-            await MultipartByteRanges.WritePartTrailerAsync(context.Response, cancellationToken);
-        }
-
-        await multipart.WriteEpilogueAsync(context.Response, cancellationToken);
-    }
-
     /// <summary>
     /// The Range header, unless If-Range says the client is holding a different version of the entity.
     /// </summary>
-    private static string? RangeHeaderOf(HttpRequest request, EntityTagHeaderValue tag, DateTimeOffset lastModified)
+    /// <remarks>
+    /// If-Range is read as <c>GetTypedHeaders</c> reads it, the values joined and parsed, without the
+    /// <c>RequestHeaders</c> wrapper built for one property. A condition that is this entity's tag or date as
+    /// the ETag and Last-Modified headers sent them — what a client resuming a download sends back — is
+    /// current without being parsed.
+    /// </remarks>
+    private static string? RangeHeaderOf(HttpRequest request, Validators validators)
     {
         if (!HttpMethods.IsGet(request.Method) && !HttpMethods.IsHead(request.Method))
             return null;
 
-        if (request.GetTypedHeaders().IfRange is not { } ifRange)
+        string? condition = request.Headers.IfRange;
+
+        if (condition == validators.TagText || condition == validators.LastModifiedText)
+            return request.Headers.Range;
+
+        if (!RangeConditionHeaderValue.TryParse(condition, out var ifRange))
             return request.Headers.Range;
 
         bool isCurrent = ifRange.EntityTag is { } candidate
-            ? candidate.Compare(tag, useStrongComparison: true)
-            : ifRange.LastModified == lastModified;
+            ? candidate.Compare(validators.Tag, useStrongComparison: true)
+            : ifRange.LastModified == validators.LastModified;
 
         if (!isCurrent)
             return null;
@@ -191,7 +193,8 @@ internal static class RangeResponse
     /// <remarks>
     /// A request whose ranges already fit keeps the list it arrived with: rebuilding it unconditionally
     /// allocated a second list and a boxed enumerator on every ranged request, and almost every request
-    /// fits.
+    /// fits. The truncation is a loop in a method of its own: a lambda over the limit made the compiler build
+    /// its closure on entry here, for every request, the ones with no limit and no range among them.
     /// </remarks>
     private static ByteRangeSet Clamp(ByteRangeSet served, long? maxRangeLength)
     {
@@ -201,10 +204,20 @@ internal static class RangeResponse
         if (!IsAnyLongerThan(served.Ranges, limit))
             return served;
 
-        return served with
+        return served with { Ranges = Truncated(served.Ranges, limit) };
+    }
+
+    private static ByteRange[] Truncated(IReadOnlyList<ByteRange> ranges, long limit)
+    {
+        var truncated = new ByteRange[ranges.Count];
+
+        for (int index = 0; index < truncated.Length; index++)
         {
-            Ranges = [.. served.Ranges.Select(range => range with { To = Math.Min(range.To, range.From + limit - 1) })]
-        };
+            var range = ranges[index];
+            truncated[index] = range with { To = Math.Min(range.To, range.From + limit - 1) };
+        }
+
+        return truncated;
     }
 
     private static bool IsAnyLongerThan(IReadOnlyList<ByteRange> ranges, long limit)
@@ -217,15 +230,4 @@ internal static class RangeResponse
 
         return false;
     }
-
-    private static string DispositionOf(string fileName)
-    {
-        var disposition = new ContentDispositionHeaderValue("inline");
-        disposition.SetHttpFileName(fileName);
-
-        return disposition.ToString();
-    }
-
-    private static DateTimeOffset ToWholeSecond(DateTimeOffset moment)
-        => DateTimeOffset.FromUnixTimeSeconds(moment.ToUnixTimeSeconds());
 }

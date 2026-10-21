@@ -15,6 +15,8 @@ public sealed record RangeContent
 {
     private readonly EntityTagHeaderValue? _entityTag;
 
+    private ValidatorCache _validators;
+
     /// <summary>
     /// How the entity is written, range by range.
     /// </summary>
@@ -30,9 +32,13 @@ public sealed record RangeContent
     public required long Length
     {
         get;
-        init => field = value >= 0
-            ? value
-            : throw new ArgumentOutOfRangeException(nameof(Length), value, "An entity cannot be shorter than nothing.");
+        init
+        {
+            field = value >= 0
+                ? value
+                : throw new ArgumentOutOfRangeException(nameof(Length), value, "An entity cannot be shorter than nothing.");
+            _validators = default;
+        }
     }
 
     /// <summary>
@@ -61,7 +67,15 @@ public sealed record RangeContent
     /// entity breaks resumed downloads: the client's If-Range stops matching and every resume restarts.
     /// HTTP dates carry whole seconds, so anything finer is truncated before it is used.
     /// </remarks>
-    public required DateTimeOffset LastModified { get; init; }
+    public required DateTimeOffset LastModified
+    {
+        get;
+        init
+        {
+            field = value;
+            _validators = default;
+        }
+    }
 
     /// <summary>
     /// The validator the store already holds, or <see langword="null"/> to derive one.
@@ -78,6 +92,8 @@ public sealed record RangeContent
         get => _entityTag?.ToString();
         init
         {
+            _validators = default;
+
             if (value is null)
             {
                 _entityTag = null;
@@ -98,7 +114,15 @@ public sealed record RangeContent
     /// <summary>
     /// Name offered to the client, or <see langword="null"/> to send no Content-Disposition.
     /// </summary>
-    public string? FileName { get; init; }
+    public string? FileName
+    {
+        get;
+        init
+        {
+            field = value;
+            _validators = default;
+        }
+    }
 
     /// <summary>
     /// What the server is willing to serve.
@@ -106,4 +130,30 @@ public sealed record RangeContent
     public RangeRules Rules { get; init; } = RangeRules.Default;
 
     internal EntityTagHeaderValue? EntityTag => _entityTag;
+
+    /// <summary>The validators every request for this entity is answered with, worked out on the first.</summary>
+    /// <remarks>
+    /// An application keeps one content per entity and serves every request for it from that one, so the tag,
+    /// the dates and the Content-Disposition are worked out once rather than per request. Setting the length,
+    /// the date, the tag or the name starts a new cache, so a <c>with</c> copy never answers with the headers of
+    /// the entity it was copied from.
+    /// </remarks>
+    internal Validators Validators => _validators.Known ??= Validators.Of(this);
+
+    /// <summary>Where the validators are kept once worked out.</summary>
+    /// <remarks>
+    /// Equal to any other, so a content that has answered a request stays equal to one that has not: the
+    /// cache is not part of what the record is, and value equality is part of its shipped contract. A struct,
+    /// so a content that is never asked costs nothing for it, and a <c>with</c> copy holds a cache of its own.
+    /// </remarks>
+    private struct ValidatorCache : IEquatable<ValidatorCache>
+    {
+        public Validators? Known { get; set; }
+
+        public readonly bool Equals(ValidatorCache other) => true;
+
+        public override readonly bool Equals(object? obj) => obj is ValidatorCache;
+
+        public override readonly int GetHashCode() => 0;
+    }
 }

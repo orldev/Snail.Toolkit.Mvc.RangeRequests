@@ -271,6 +271,26 @@ public class RangeFileResultTests
         Assert.Contains("filename=sample.bin", disposition, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// The content keeps its Content-Disposition once worked out, so a <c>with</c> copy must start its own.
+    /// </summary>
+    [Fact]
+    public async Task ExecuteResultAsync_CopyWithAnotherName_SendsTheNameOfTheCopy()
+    {
+        var content = ContentOf(RangeRules.Default);
+        var original = Requesting();
+        var renamed = Requesting();
+        var unnamed = Requesting();
+
+        await new RangeFileResult(content).ExecuteResultAsync(ActionContextOf(original));
+        await new RangeFileResult(content with { FileName = "renamed.bin" }).ExecuteResultAsync(ActionContextOf(renamed));
+        await new RangeFileResult(content with { FileName = null }).ExecuteResultAsync(ActionContextOf(unnamed));
+
+        Assert.Contains("filename=sample.bin", original.Response.Headers.ContentDisposition.ToString(), StringComparison.Ordinal);
+        Assert.Contains("filename=renamed.bin", renamed.Response.Headers.ContentDisposition.ToString(), StringComparison.Ordinal);
+        Assert.False(unnamed.Response.Headers.ContainsKey(HeaderNames.ContentDisposition));
+    }
+
     [Fact]
     public async Task ExecuteResultAsync_Always_SendsAValidatorTheClientCanResumeWith()
     {

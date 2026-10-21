@@ -79,6 +79,55 @@ public class EntityTagTests
         Assert.NotEqual(earlier.Response.Headers.ETag, later.Response.Headers.ETag);
     }
 
+    /// <summary>
+    /// A content works its validators out once and keeps them, so a copy made with <c>with</c> after it has
+    /// answered must work out its own: answering with the tag of the entity it was copied from would let a
+    /// client resume a changed entity against the old one.
+    /// </summary>
+    [Fact]
+    public async Task Serving_ACopyWithAnotherDate_SendsTheTagOfTheCopy()
+    {
+        var content = ContentOf(tag: null);
+        var original = Requesting();
+        var copied = Requesting();
+        var fresh = Requesting();
+
+        await ServeAsync(original, content);
+        await ServeAsync(copied, content with { LastModified = LastModified.AddHours(3) });
+        await ServeAsync(fresh, tag: null, LastModified.AddHours(3));
+
+        Assert.NotEqual(original.Response.Headers.ETag, copied.Response.Headers.ETag);
+        Assert.Equal(fresh.Response.Headers.ETag, copied.Response.Headers.ETag);
+        Assert.Equal(fresh.Response.Headers.LastModified, copied.Response.Headers.LastModified);
+    }
+
+    [Fact]
+    public async Task Serving_ACopyWithAnotherTag_SendsTheTagOfTheCopy()
+    {
+        var content = ContentOf(StoredTag);
+        var original = Requesting();
+        var copied = Requesting();
+
+        await ServeAsync(original, content);
+        await ServeAsync(copied, content with { ETag = "\"9f2c-revision-5\"" });
+
+        Assert.Equal(StoredTag, original.Response.Headers.ETag);
+        Assert.Equal("\"9f2c-revision-5\"", copied.Response.Headers.ETag);
+    }
+
+    /// <summary>The validators a content keeps are not part of what it is: equality is the record's shipped contract.</summary>
+    [Fact]
+    public async Task RangeContent_ThatHasAnsweredARequest_StaysEqualToOneThatHasNot()
+    {
+        var answered = ContentOf(StoredTag);
+        var unasked = ContentOf(StoredTag);
+
+        await ServeAsync(Requesting(), answered);
+
+        Assert.Equal(unasked, answered);
+        Assert.Equal(unasked.GetHashCode(), answered.GetHashCode());
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("unquoted")]
@@ -119,6 +168,9 @@ public class EntityTagTests
     private static Task ServeAsync(DefaultHttpContext context, string? tag, DateTimeOffset? lastModified = null)
         => new RangeFileResult(ContentOf(tag, lastModified)).ExecuteResultAsync(
             new ActionContext(context, new RouteData(), new ActionDescriptor()));
+
+    private static Task ServeAsync(DefaultHttpContext context, RangeContent content)
+        => new RangeFileResult(content).ExecuteResultAsync(new ActionContext(context, new RouteData(), new ActionDescriptor()));
 
     private static RangeContent ContentOf(string? tag, DateTimeOffset? lastModified = null) => new()
     {
