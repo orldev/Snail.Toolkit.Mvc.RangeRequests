@@ -1,6 +1,6 @@
 name: performance
 
-# Every two months: the benchmarks against benchmarks/baseline/, and Stryker.NET on the tests.
+# Twice a year, on the first of January and of July: the benchmarks against benchmarks/baseline/, and Stryker.NET on the tests.
 
 on:
   schedule:
